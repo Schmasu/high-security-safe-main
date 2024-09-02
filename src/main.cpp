@@ -86,11 +86,11 @@ void check_buttons()
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Tresor offen");
+    state_machine(OPEN_DOOR);
   }
   if ('D' == get_key())
   {
     state_machine(INPUT_REFUSED);
-    state_machine(OPEN_DOOR);
     state_machine(CLOSE_DOOR);
     Serial.println("Tresor gesperrt!");
     lcd.clear();
