@@ -13,6 +13,8 @@ void check_states();
 void check_pin();
 void printEnteredPin();
 
+void updateLCD();
+
 
 void setup()
 {
@@ -24,7 +26,7 @@ void setup()
   lcd.init();
   lcd.backlight();
   lcd.setCursor(0, 0);
-  lcd.print("Servus Kollege");
+  lcd.print("Tresor bereit");
   delay(2000);
   lcd.clear();
 }
@@ -35,6 +37,7 @@ int32_t last_encoder_state = 0;
 const char correct_pin[] = "2580";
 char entered_pin[5];
 int pin_index = 0;
+bool showPin = false;
 
 void loop()
 {
@@ -96,8 +99,6 @@ void check_buttons()
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Tresor gesperrt!");
-    delay(3000);
-    lcd.clear();
   }
 }
 
@@ -110,6 +111,10 @@ void check_states()
     digitalWrite(LED_GREEN_LOCK_1_PIN, LOW);
     digitalWrite(LED_GREEN_LOCK_2_PIN, LOW);
     digitalWrite(LED_GREEN_LOCK_3_PIN, LOW);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Tresor gesperrt!");
+    delay(500);
     break;
   case LEVEL_1_UNLOCKED:
     digitalWrite(LED_RED_LOCKED_PIN, LOW);
@@ -154,11 +159,11 @@ void check_pin()
     }
     if (strcmp(entered_pin, correct_pin) == 0){     // Wenn PIN korrekt eingegeben wurde...
       Serial.print("PIN korrekt!");
-      Serial.print(" Zugang gewaehrt. \n");
+      Serial.print(" Level 2 unlocked \n");
       lcd.clear();
       lcd.print("PIN Korrekt");
       lcd.setCursor(0, 1);
-      lcd.print("Zugang gewaehrt.");
+      lcd.print("Level 2 unlocked");
       delay(3000);
       lcd.clear();
       state_machine(INPUT_2_ACCEPTED);
@@ -177,16 +182,17 @@ void check_pin()
     }
     pin_index = 0;
     }
+
+  else if(key == '*' && pin_index > 0){
+    showPin = !showPin;
+    updateLCD();
+  }
+
   else if (pin_index < 4 && key >= '0' && key <= '9'){      // PIN Eingabe und Ausgabe des aktuell eingegebenen PIN
     entered_pin[pin_index] = key;
     pin_index++;
-    printEnteredPin();
-
-    /*Serial.print("Eingegebener PIN: ");
-    for (int i = 0; i < pin_index; i++){
-      Serial.print(entered_pin[i]);
-    }
-    Serial.println();*/
+    //printEnteredPin();
+    updateLCD();
   }
   else if (key == '*'){     // Löschen der aktuellen Eingabe
     pin_index = 0;
@@ -212,4 +218,19 @@ void printEnteredPin(){
       lcd.print(entered_pin[i]);
     }
     Serial.println();
+}
+
+void updateLCD() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Eingegebener PIN: ");
+  lcd.setCursor(0, 1);
+  if(showPin){
+    lcd.print(entered_pin);     // Tatsächlichen PIN anzeigen
+  }
+  else{
+    for(int i = 0; i < pin_index; i++){
+      lcd.print('*');     // PIN als '*' anzeigen
+    }
+  }
 }
